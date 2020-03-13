@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link rel="stylesheet" type="text/css" href="css/base.css">
+<title></title>
+<style>
+body {
+  font-size: 0.72916667vw;
+  color: #fff;
+}
+.map {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+</style>
+</head>
+<body>
+<div class="map" id="map"></div>
+            
+
+<script src="resource/jquery/jquery-1.11.3.js" type="text/javascript"></script>
+<script src="resource/echarts/echarts-4.2.0.js" type="text/javascript"></script>
+<script src="resource/echarts/echarts-gl.js" type="text/javascript"></script>
+<script>
+setMap('map');
+function  setMap(divBox) {
+		// 初始化图表	
+		var myChart = echarts.init(document.getElementById(divBox));
+		
+		// JSON文件(地图数据)路径
+		var uploadedDataURL = "resource/echarts/nanjing.json";
+
+		var mapData = [
+			{name: '玄武区', value: parseInt(Math.random()*100)},
+			{name: '秦淮区', value: parseInt(Math.random()*100)},
+			{name: '鼓楼区', value: parseInt(Math.random()*100)},
+			{name: '建邺区', value: parseInt(Math.random()*100)},
+			{name: '栖霞区', value: parseInt(Math.random()*100)},
+			{name: '雨花台区', value: parseInt(Math.random()*100)},
+			{name: '浦口区', value: parseInt(Math.random()*100)},
+			{name: '江宁区', value: parseInt(Math.random()*100)},
+			{name: '六合区', value: parseInt(Math.random()*100)},
+			{name: '溧水区', value: parseInt(Math.random()*100)},
+			{name: '高淳区', value: parseInt(Math.random()*100)},
+		];
+		$.each(mapData,function(i,v){
+			v.height=v.value/10;
+		})
+
+		var scatterData = [
+			{"name": "玄武区","value": [118.792199,32.050678,100]},
+			{"name": "秦淮区","value": [118.786088,32.033818,100]},
+			{"name": "建邺区","value": [118.732688,32.004538,100]},
+			{"name": "鼓楼区","value": [118.769739,32.066966,100]},
+			{"name": "浦口区","value": [118.625307,32.05839,100]},
+		];
+
+
+
+		// 引入JSON文件
+		$.getJSON(uploadedDataURL, function(geoJson) {
+			
+		
+			// 注册地图名字(tongren)和数据(geoJson)
+			echarts.registerMap('tongren', geoJson);
+
+			var geoCoordMap = {
+				"玄武区": [118.808702,32.102147],
+				"秦淮区": [118.850621,31.953418],
+				"建邺区": [118.85065,32.340655],
+				"鼓楼区": [119.028732,31.653061],
+				"浦口区": [118.625307,32.05839]
+			};
+
+			var city = [
+				{name: '玄武区',value: randomNum(300, 400)},
+				{name: '秦淮区',value: randomNum(300, 400)},
+				{name: '建邺区',value: randomNum(300, 400)},
+				{name: '鼓楼区',value: randomNum(300, 400)},
+				{name: '浦口区',value: randomNum(300, 400)},
+			];
+
+			function randomNum(minNum, maxNum) {
+				switch (arguments.length) {
+					case 1:
+						return parseInt(Math.random() * minNum + 1, 10);
+						break;
+					case 2:
+						return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10);
+						break;
+					default:
+						return 0;
+						break;
+				}
+			}
+
+			var convertData = function(data) {
+				var res = [];
+				for (var i = 0; i < data.length; i++) {
+					var geoCoord = geoCoordMap[data[i].name];
+					if (geoCoord) {
+						res.push({
+							name: data[i].name,
+							value: geoCoord.concat(data[i].value),
+							status: data[i].status
+						});
+					}
+				}
+				return res;
+			};
+			
+			// 图表配置项		
+			var option = {
+					geo3D:{
+						show:true,
+						map: 'tongren',
+						environment: 'images/bg4.png',
+						// environment: '#000',
+						groundPlane:{
+							show:true,
+							color:'red'
+						},
+						label:{
+							normal:{
+								show:true,
+							},
+							emphasis :{
+								show:false,
+							}
+						},
+						itemStyle:{
+							// color:'#1ac0d6',
+							borderWidth:1
+						},
+						shading: 'realistic',
+						realisticMaterial:{
+							detailTexture:'images/bg2.png',
+							roughness:0,//粗糙程度0为光滑，1为粗糙
+							// normalTexture:'images/bg5.png',//法线贴图
+						},
+						light: { // 光照相关的设置。在 shading 为 'color' 的时候无效。
+							// main: { //场景主光源的设置
+							// 	intensity: 1000, //主光源的强度
+							// 	shadow: true, //主光源是否投射阴影
+							// 	shadowQuality: 'low', //阴影的质量
+							// 	alpha: 160, //主光源绕 x 轴偏离的角度
+							// 	beta: 30, //主光源绕 y 轴偏离的角度
+							// },
+							ambient: { //全局的环境光设置。
+								// color:'red',
+								intensity: 100 //环境光的强度
+							},
+							
+						},
+						postEffect :{
+							enable:true,
+							bloom:{
+								enable:true,
+								// bloomIntensity :100000
+							},
+						},
+						viewControl:{
+							damping :0.95,
+							distance :180,
+							animation :true,
+							animationDurationUpdate :1500,
+							minBeta :-180,
+							maxBeta :180
+						}
+					},
+					tooltip : {							// 提示框
+						trigger : 'item',
+						formatter : '{b}:{c}'
+					},
+					// visualMap: {
+					// 	show: false,
+					// 	min: 0,
+					// 	max: 100,
+					// 	inRange: {
+					// 		color: ['#4793ff', '#3873c7','#083678']
+					// 	},
+					// 	calculable:true
+
+					// },
+					
+				    series: [
+						{
+							type: 'scatter3D',
+							coordinateSystem: 'geo3D',
+							data: scatterData,
+							symbol: 'circle',
+							symbolSize: 50,
+							blendMode :'source-over',
+							itemStyle:{
+								color:'purple',
+								borderColor:'#fff',
+								borderWidth:1
+							},        
+							label:{
+								show:true,
+								formatter:'{b}',
+								position:'bottom',
+								textStyle:{
+									color:'#000',
+									backgroundColor:'#fff',
+								}
+							}
+						},
+						{
+							name: '',
+							minHeight: 15,
+							type: "bar3D",
+							coordinateSystem: 'geo3D',
+							barSize: 6, //柱子粗细
+							shading: 'realistic',
+							// realisticMaterial: {
+							// 	detailTexture:'images/bg1.png',
+							// 	roughness:0,//粗糙程度0为光滑，1为粗糙
+							// 	// normalTexture:'images/bg5.png',//法线贴图
+							// },
+							opacity: 1,
+							bevelSize: 0.3,
+							label: {
+								show: true,
+								textStyle: {
+									color: "#000",
+									fontWeight: "bolder",
+									fontSize: 20,
+									textBorderColor: "#fff",
+									textBorderWidth: 0,
+									backgroundColor: "rgba(0,100,100,0.7)",
+								},
+								formatter: function(params) {
+									return params.name;
+								},
+							},
+							itemStyle: {
+								color: '#004645',
+							},
+							data: convertData(city),
+						},
+						{
+							type:'lines3D',
+							coordinateSystem: 'geo3D',
+							lineStyle :{
+								color: '#fff',
+								width:2
+							},
+							effect :{
+								show:true,
+								trailColor :'#ff0000',
+								trailWidth :10,
+								trailLength :0.3
+							},
+							data: [
+								{
+									coords:[[118.808702,32.102147],[118.850621,31.953418]],
+									value:1000,
+								},
+								{
+									coords:[[118.625307,32.05839,100],[119.028732,31.653061,100]],
+									value:2000,
+								}
+							]
+						}
+					]
+			};
+			
+			// 设置图表实例的配置项以及数据，万能接口，所有参数和数据的修改都可以通过setOption完成，ECharts 会合并新的参数和数据，然后刷新图表。
+			myChart.setOption(option);
+			
+		});
+		
+        
+}
+
+
+</script>
+</body>
+</html>
